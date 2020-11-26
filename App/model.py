@@ -1,28 +1,3 @@
-"""
- * Copyright 2020, Departamento de sistemas y Computación
- * Universidad de Los Andes
- *
- *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * Contribución de:
- *
- * Dario Correal
- *
- """
 import config
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as m
@@ -33,25 +8,77 @@ from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 assert config
 
-"""
-En este archivo definimos los TADs que vamos a usar y las operaciones
-de creacion y consulta sobre las estructuras de datos.
-"""
-
 # -----------------------------------------------------
 #                       API
-# -----------------------------------------------------
+def analyzer():
+    analyzer = {"indice":None,
+                "grafo":None}
+    analyzer["indice"] = m.newMap(numelements=1000, 
+                                  prime=109345121, 
+                                  maptype="CHAINING",
+                                  loadfactor=1.0, 
+                                  comparefunction=None)      
 
+    analyzer["grafo"] = gr.newGraph(datastructure='ADJ_LIST',
+                                  directed=True,
+                                  size=1000,
+                                  comparefunction=comparer)
+    return analyzer
+
+# -----------------------------------------------------
 # Funciones para agregar informacion al grafo
+def AñadirRuta(analyzer, route):
+    """
+    """
+    origin = route['start station id']
+    destination = route['end station id']
+    duration = int(route['tripduration'])
+    AñadirEstacion(analyzer, origin)
+    AñadirEstacion(analyzer, destination)
+    AñadirConeccion(analyzer, origin, destination, duration)
+
+def  AñadirEstacion(analyzer, estacion):
+    if not gr.containsVertex(analyzer["grafo"], estacion):
+        gr.insertVertex(analyzer["grafo"], estacion)
+    return analyzer
+
+def AñadirConeccion(analyzer, origin, destination, duration):
+    edge = gr.getEdge(analyzer["grafo"], origin, destination)
+    if edge is None:
+        gr.addEdge(analyzer["grafo"], origin, destination, duration)
+    else:
+        edge["weight"] = (edge["weight"]+int(duration))/2
+    return analyzer
 
 # ==============================
 # Funciones de consulta
 # ==============================
+def TotaldeClusteres(analyzer):
+    i = scc.KosarajuSCC(analyzer["grafo"])
+    retorno = scc.connectedComponents(i)
+    return retorno
 
-# ==============================
-# Funciones Helper
-# ==============================
+def ClusterPresence(analyzer,id1,id2):
+    i = scc.KosarajuSCC(analyzer["grafo"])
+    retorno = scc.stronglyConnected(i, id1, id2)
+    return retorno
+
+def TotalDeVertices(analyzer):
+    retorno = gr.numVertices(analyzer["grafo"])
+    return retorno
+
+def TotalDeArcos(analyzer):
+    retorno = gr.numEdges(analyzer["grafo"])
+    return retorno
 
 # ==============================
 # Funciones de Comparacion
 # ==============================
+def comparer(stop, keyvaluestop):
+    stopcode = keyvaluestop['key']
+    if (stop == stopcode):
+        return 0
+    elif (stop > stopcode):
+        return 1
+    else:
+        return -1
